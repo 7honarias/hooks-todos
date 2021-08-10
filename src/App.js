@@ -1,11 +1,12 @@
 import './App.css';
 import ToDoList from './ToDoList';
 import React, {useReducer} from 'react';
-import { v4 as uuidv4 } from 'uuid';
 
 const todosInitialState = {
   todos:[]
 };
+
+export const TodosContext = React.createContext();
 
 function todosReducer(state, action) {
   switch (action.type) {
@@ -21,8 +22,7 @@ function todosReducer(state, action) {
       ];
       return {...state, todos: updatedToDos};
     case 'add':
-      const newToDo = {id: uuidv4, text: action.payload};
-      const addedToDos = [...state.todos, newToDo];
+      const addedToDos = [...state.todos, action.payload];
       return {...state, todos:addedToDos};
     case 'delete':
       const filteredTodoState = state.todos.filter(todo => todo.id !== action.payload.id);
@@ -32,7 +32,6 @@ function todosReducer(state, action) {
   }
 }
 
-export const TodosContext = React.createContext();
 
 function App() {
   const [state, dispatch] = useReducer(todosReducer, todosInitialState);

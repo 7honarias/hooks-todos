@@ -1,6 +1,8 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { TodosContext } from './App';
 import { Table, Form, Button } from 'react-bootstrap';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import useAPI from './useAPI';
 
 function ToDoList(){
@@ -10,22 +12,26 @@ function ToDoList(){
     const [editTodo, setEditTodo] = useState(null);
     const buttonTitle = editMode ? "Edit" : "Add";
 
-    const endpoint = "http://localhost3000/todos/"
+    const endpoint = "http://localhost:3000/todos/"
     const savedTodos = useAPI(endpoint);
 
     useEffect(() => {
         dispatch({type: "get", payload: savedTodos});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[savedTodos])
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         if(editMode) {
+            await axios.patch(endpoint+editTodo.id, {text:todoText})
             dispatch({type: 'edit', payload: {...editTodo, text:todoText}});
             setEditMode(false);
             setEditTodo(null);
         }
         else {
-            dispatch({type: 'add', payload: todoText});
+            const newToDo = {id: uuidv4(), text: todoText};
+            await axios.post(endpoint, newToDo);
+            dispatch({type: 'add', payload: newToDo});
         }
         setTodoText("");
     }
@@ -60,11 +66,13 @@ function ToDoList(){
                             setEditMode(true)
                             setEditTodo(todo)
                         }}>
-                            Edit
+                            <Button variant="link">Edit</Button>
                         </td>
-                        <td onClick={() => 
-                            dispatch({type:'delete', payload:todo})}>
-                                Delete
+                        <td onClick={ async () => {
+                            await axios.delete(endpoint + todo.id)
+                            dispatch({type:'delete', payload:todo})}
+                        }>
+                                <Button variant="link">Delete</Button>
                         </td>
                     </tr>
                     ))}
